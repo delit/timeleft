@@ -540,7 +540,7 @@ body {
   padding: 1rem;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
-  margin-top: 35px;
+  margin-top: -35px;
 }
 
 .calc-btn:hover { opacity: 0.85; transform: translateY(-1px); }
