@@ -1,0 +1,106 @@
+/* =============================================================
+   RESPONSIVE — Time Left
+   Breakpoints:
+     ≤ 600px  tablet / large phone
+     ≤ 480px  phone
+     ≤ 360px  small phone
+   ============================================================= */
+
+/* ── Tablet / large phone ─────────────────────────────────── */
+@media (max-width: 600px) {
+  body { padding: 1.5rem 1rem; }
+
+  .headline { font-size: 26px; }
+
+  .unit-num  { font-size: 24px; }
+  .total-num { font-size: 22px; }
+  .ms-num    { font-size: 18px; }
+
+  /* Slightly smaller pie so title has more room */
+  .pie-wrap      { width: 130px; height: 130px; }
+  .pie-svg       { width: 130px; height: 130px; }
+  #pulse-canvas  { width: 180px; height: 180px; top: -25px; left: -25px; }
+  .pie-pct       { font-size: 15px; }
+}
+
+/* ── Phone ────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  body { padding: 1.25rem 0.9rem; }
+
+  /* Header: stack vertically, everything centred */
+  .header-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.4rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .title-block {
+    width: 100%;
+    text-align: center;
+  }
+
+  .headline { font-size: 28px; }
+
+  .subline { font-size: 11px; }
+
+  /* Pie centred below title — legend hidden on mobile */
+  .pie-block {
+    align-self: center;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .pie-legend { display: none; }
+
+  .pie-wrap      { width: 160px; height: 160px; }
+  .pie-svg       { width: 160px; height: 160px; }
+  #pulse-canvas  { width: 210px; height: 210px; top: -25px; left: -25px; }
+
+  /* Countdown: Days full-width on row 1,
+                Hours / Minutes / Seconds on row 2 */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  /* Days spans all 3 columns */
+  .grid .unit:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .unit { padding: 1rem 0.5rem 0.85rem; }
+  .unit-num { font-size: 26px; }
+
+  /* Totals: already 2-column, reduce padding */
+  .totals { gap: 8px; }
+  .total-card { padding: 1rem 0.85rem 0.85rem; }
+  .total-num  { font-size: 22px; }
+  .total-unit { font-size: 10px; }
+
+  /* Milestones: keep 3 in a row but smaller */
+  .milestones { gap: 6px; }
+  .ms-card { padding: 0.85rem 0.6rem 0.75rem; }
+  .ms-num  { font-size: 17px; }
+  .ms-label { font-size: 9px; letter-spacing: 0.18em; }
+
+  /* Reset button */
+  .reset-wrap { margin-top: 2rem; }
+
+  /* Form page */
+  .splash-subtitle { margin-bottom: 2rem; font-size: 12px; }
+  .life-form       { max-width: 100%; }
+}
+
+/* ── Small phone ──────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .headline { font-size: 24px; }
+
+  .grid { gap: 6px; }
+  .unit-num { font-size: 22px; }
+
+  /* Milestones wrap to 2+1 */
+  .milestones { flex-wrap: wrap; }
+  .ms-card { flex: 1 1 calc(50% - 4px); }
+}

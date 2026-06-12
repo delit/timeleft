@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Primary meta -->
+<title>Time Left to Live — Life Expectancy Countdown</title>
+<meta name="description" content="Discover how much time you statistically have left to live. Enter your country, birth year and gender to get a personalised countdown based on WHO life expectancy data.">
+<meta name="keywords" content="life expectancy, time left to live, life countdown, how long to live, mortality calculator, WHO data, lifespan calculator">
+<meta name="author" content="Time Left">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#141414">
+
+<!-- Open Graph (Facebook, LinkedIn, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Time Left to Live — Life Expectancy Countdown">
+<meta property="og:description" content="How much time do you have left? A personalised countdown based on WHO life expectancy data for your country and gender.">
+<meta property="og:image" content="favicon.png">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Time Left to Live — Life Expectancy Countdown">
+<meta name="twitter:description" content="How much time do you have left? A personalised countdown based on WHO life expectancy data for your country and gender.">
+<meta name="twitter:image" content="favicon.png">
+
+<!-- Favicons -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+
+<!-- ============================================================
+     START PAGE / FORM
+     ============================================================ -->
+<div id="splash">
+  <h1 class="splash-title">Time Left</h1>
+  <p class="splash-subtitle">Find out how much time you statistically have left to live, based on your country's average life expectancy.</p>
+
+  <form class="life-form" onsubmit="return false">
+    <div class="form-group">
+      <label class="form-label">Country</label>
+      <div class="custom-select-wrap" id="country-wrap">
+        <div class="custom-trigger" id="country-trigger" tabindex="0"
+             onclick="toggleCountryDropdown()"
+             onkeydown="if(event.key==='Enter'||event.key===' ')toggleCountryDropdown()">
+          <span id="country-display" class="ct-placeholder">Select your country…</span>
+          <svg class="ct-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
+            <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="custom-dropdown" id="country-dropdown">
+          <input class="dd-search" id="dd-search" type="text" placeholder="Search country…"
+                 oninput="filterCountries()" autocomplete="off"/>
+          <div class="dd-options" id="dd-options"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="sel-year">Birth Year</label>
+      <div class="select-wrap">
+        <select class="form-select" id="sel-year"></select>
+        <svg class="select-arrow" width="10" height="6" viewBox="0 0 10 6" fill="none">
+          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Gender</label>
+      <div class="gender-group">
+        <button type="button" class="gender-btn" id="btn-male" onclick="selectGender('male',this)">
+          <span class="gender-symbol">♂</span><span class="gender-label">Male</span>
+        </button>
+        <button type="button" class="gender-btn" id="btn-female" onclick="selectGender('female',this)">
+          <span class="gender-symbol">♀</span><span class="gender-label">Female</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-error" id="form-error"></div>
+
+    <button type="button" class="calc-btn" onclick="calculate()">Calculate</button>
+  </form>
+
+  <p class="form-note">Based on WHO life expectancy data (2023). Statistical averages for informational purposes only.</p>
+</div>
+
+<!-- ============================================================
+     MAIN DASHBOARD
+     ============================================================ -->
+<div class="wrap" id="main-wrap" style="display:none">
+
+  <div class="header-row">
+    <div class="title-block">
+      <h1 class="headline">Time Left to Live</h1>
+      <p class="subline" id="main-subline-1">—</p>
+      <p class="subline" id="main-subline-2"></p>
+    </div>
+    <div class="pie-block">
+      <div class="pie-legend">
+        <div style="margin-top:90px">
+          <div class="legend-row"><span class="legend-dot" style="background:rgba(201,169,110,0.35)"></span><span style="color:rgba(201,169,110,0.45)">Lived</span></div>
+          <div class="legend-row" style="margin-top:3px"><span id="leg-gone" style="color:rgba(201,169,110,0.45);font-weight:500">—</span></div>
+        </div>
+      </div>
+      <div class="pie-wrap">
+        <canvas id="pulse-canvas"></canvas>
+        <svg class="pie-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle fill="none" stroke="#1e1e1e" stroke-width="15" cx="50" cy="50" r="38"/>
+          <circle fill="none" stroke="rgba(201,169,110,0.22)" stroke-width="15" cx="50" cy="50" r="38" id="arc-gone" stroke-dasharray="0 238.76" stroke-dashoffset="0"/>
+          <circle fill="none" stroke="#c9a96e" stroke-width="15" cx="50" cy="50" r="38" id="arc-left" stroke-dasharray="238.76 238.76" stroke-dashoffset="0"/>
+        </svg>
+        <div class="pie-center">
+          <span class="pie-pct" id="pct-display">—</span>
+          <span class="pie-sub">left</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="unit"><span class="unit-num" id="days">—</span><span class="unit-label">Days</span></div>
+    <div class="unit"><span class="unit-num" id="hours">—</span><span class="unit-label">Hours</span></div>
+    <div class="unit"><span class="unit-num" id="minutes">—</span><span class="unit-label">Minutes</span></div>
+    <div class="unit"><span class="unit-num" id="seconds">—</span><span class="unit-label">Seconds</span></div>
+  </div>
+
+  <div class="totals">
+    <div class="total-card">
+      <span class="total-label">Months remaining</span>
+      <span class="total-num" id="months">—</span><span class="total-unit">months</span>
+    </div>
+    <div class="total-card">
+      <span class="total-label">Weeks remaining</span>
+      <span class="total-num" id="weeks">—</span><span class="total-unit">weeks</span>
+    </div>
+  </div>
+
+  <div class="milestones">
+    <div class="ms-card">
+      <span class="ms-label" id="ms-label-0">Age 50</span>
+      <span class="ms-num" id="ms-val-0">—</span><span class="ms-unit" id="ms-unit-0">months</span>
+    </div>
+    <div class="ms-card">
+      <span class="ms-label" id="ms-label-1">Age 65</span>
+      <span class="ms-num" id="ms-val-1">—</span><span class="ms-unit" id="ms-unit-1">months</span>
+    </div>
+    <div class="ms-card">
+      <span class="ms-label" id="ms-label-2">Age 80</span>
+      <span class="ms-num" id="ms-val-2">—</span><span class="ms-unit" id="ms-unit-2">months</span>
+    </div>
+  </div>
+
+  <div class="totals" style="opacity:0;animation:fadeUp 0.7s 0.7s forwards">
+    <div class="total-card">
+      <span class="total-label">Full moons remaining</span>
+      <span class="total-num" id="moons">—</span><span class="total-unit">moons</span>
+    </div>
+    <div class="total-card">
+      <span class="total-label">Summers remaining</span>
+      <span class="total-num" id="summers">—</span><span class="total-unit">summers</span>
+    </div>
+  </div>
+
+  <div class="reset-wrap">
+    <button class="reset-btn" onclick="resetToForm()">↩ Recalculate</button>
+  </div>
+
+</div>
+
+<script>
+/* ================================================================
+   COUNTRIES DATA
+   Format: [name, flag, male_LE, female_LE]
+   Source: WHO Global Health Observatory, approximate 2023 values
+   ================================================================ */
+var COUNTRIES = [
+  ["Afghanistan","🇦🇫",63.2,65.6],
+  ["Albania","🇦🇱",76.0,79.8],
+  ["Algeria","🇩🇿",76.4,78.0],
+  ["Andorra","🇦🇩",81.9,86.3],
+  ["Angola","🇦🇴",61.2,65.8],
+  ["Antigua and Barbuda","🇦🇬",75.5,79.3],
+  ["Argentina","🇦🇷",72.9,79.8],
+  ["Armenia","🇦🇲",71.9,78.3],
+  ["Australia","🇦🇺",81.2,85.3],
+  ["Austria","🇦🇹",79.4,83.7],
+  ["Azerbaijan","🇦🇿",70.8,76.6],
+  ["Bahamas","🇧🇸",72.4,76.6],
+  ["Bahrain","🇧🇭",77.2,78.8],
+  ["Bangladesh","🇧🇩",70.8,74.4],
+  ["Barbados","🇧🇧",75.6,80.5],
+  ["Belarus","🇧🇾",68.6,78.4],
+  ["Belgium","🇧🇪",79.3,83.6],
+  ["Belize","🇧🇿",71.3,76.7],
+  ["Benin","🇧🇯",60.5,63.5],
+  ["Bhutan","🇧🇹",70.4,72.0],
+  ["Bolivia","🇧🇴",67.8,72.9],
+  ["Bosnia and Herzegovina","🇧🇦",74.4,78.9],
+  ["Botswana","🇧🇼",65.3,69.2],
+  ["Brazil","🇧🇷",71.7,79.1],
+  ["Brunei","🇧🇳",74.7,77.9],
+  ["Bulgaria","🇧🇬",71.2,78.4],
+  ["Burkina Faso","🇧🇫",58.7,61.4],
+  ["Burundi","🇧🇮",60.6,64.5],
+  ["Cambodia","🇰🇭",68.3,72.7],
+  ["Cameroon","🇨🇲",58.0,61.0],
+  ["Canada","🇨🇦",80.4,84.8],
+  ["Cape Verde","🇨🇻",73.3,78.2],
+  ["Central African Republic","🇨🇫",52.0,55.3],
+  ["Chad","🇹🇩",52.8,56.2],
+  ["Chile","🇨🇱",77.1,83.0],
+  ["China","🇨🇳",75.8,80.5],
+  ["Colombia","🇨🇴",73.2,79.2],
+  ["Comoros","🇰🇲",63.9,67.4],
+  ["Congo","🇨🇬",63.2,67.8],
+  ["Costa Rica","🇨🇷",77.7,82.8],
+  ["Croatia","🇭🇷",74.8,80.8],
+  ["Cuba","🇨🇺",76.0,79.7],
+  ["Cyprus","🇨🇾",79.4,83.8],
+  ["Czech Republic","🇨🇿",75.9,81.8],
+  ["DR Congo","🇨🇩",58.5,62.7],
+  ["Denmark","🇩🇰",79.0,83.0],
+  ["Djibouti","🇩🇯",63.2,67.3],
+  ["Dominica","🇩🇲",74.0,78.0],
+  ["Dominican Republic","🇩🇴",72.0,78.0],
+  ["Ecuador","🇪🇨",74.5,79.5],
+  ["Egypt","🇪🇬",69.4,73.0],
+  ["El Salvador","🇸🇻",69.1,77.7],
+  ["Equatorial Guinea","🇬🇶",58.2,62.1],
+  ["Eritrea","🇪🇷",63.4,67.2],
+  ["Estonia","🇪🇪",73.2,81.5],
+  ["Eswatini","🇸🇿",57.1,60.3],
+  ["Ethiopia","🇪🇹",64.0,67.5],
+  ["Fiji","🇫🇯",68.2,72.6],
+  ["Finland","🇫🇮",79.3,84.3],
+  ["France","🇫🇷",79.7,85.7],
+  ["Gabon","🇬🇦",63.4,66.4],
+  ["Gambia","🇬🇲",61.0,64.5],
+  ["Georgia","🇬🇪",69.6,77.7],
+  ["Germany","🇩🇪",78.7,83.4],
+  ["Ghana","🇬🇭",63.0,66.3],
+  ["Greece","🇬🇷",78.7,84.0],
+  ["Grenada","🇬🇩",72.0,76.5],
+  ["Guatemala","🇬🇹",69.4,76.0],
+  ["Guinea","🇬🇳",58.8,61.4],
+  ["Guinea-Bissau","🇬🇼",57.3,60.5],
+  ["Guyana","🇬🇾",66.4,71.9],
+  ["Haiti","🇭🇹",63.7,67.1],
+  ["Honduras","🇭🇳",71.2,76.5],
+  ["Hungary","🇭🇺",72.8,79.7],
+  ["Iceland","🇮🇸",81.3,84.7],
+  ["India","🇮🇳",68.4,71.4],
+  ["Indonesia","🇮🇩",70.1,74.3],
+  ["Iran","🇮🇷",74.6,76.3],
+  ["Iraq","🇮🇶",69.4,72.7],
+  ["Ireland","🇮🇪",80.4,84.1],
+  ["Israel","🇮🇱",81.0,84.6],
+  ["Italy","🇮🇹",80.7,85.0],
+  ["Ivory Coast","🇨🇮",57.5,60.3],
+  ["Jamaica","🇯🇲",73.4,77.9],
+  ["Japan","🇯🇵",81.3,87.3],
+  ["Jordan","🇯🇴",73.0,75.5],
+  ["Kazakhstan","🇰🇿",68.2,76.2],
+  ["Kenya","🇰🇪",63.4,68.3],
+  ["Kiribati","🇰🇮",64.4,69.3],
+  ["Kosovo","🇽🇰",72.5,76.4],
+  ["Kuwait","🇰🇼",75.8,77.9],
+  ["Kyrgyzstan","🇰🇬",66.8,74.9],
+  ["Laos","🇱🇦",66.9,70.7],
+  ["Latvia","🇱🇻",69.8,79.3],
+  ["Lebanon","🇱🇧",74.4,78.2],
+  ["Lesotho","🇱🇸",50.8,55.2],
+  ["Liberia","🇱🇷",60.5,63.7],
+  ["Libya","🇱🇾",72.7,77.2],
+  ["Liechtenstein","🇱🇮",80.8,84.9],
+  ["Lithuania","🇱🇹",70.3,80.5],
+  ["Luxembourg","🇱🇺",80.1,84.5],
+  ["Madagascar","🇲🇬",65.3,69.2],
+  ["Malawi","🇲🇼",61.6,65.2],
+  ["Malaysia","🇲🇾",74.2,77.8],
+  ["Maldives","🇲🇻",77.4,79.5],
+  ["Mali","🇲🇱",57.5,59.8],
+  ["Malta","🇲🇹",80.0,84.0],
+  ["Marshall Islands","🇲🇭",69.5,72.1],
+  ["Mauritania","🇲🇷",63.6,66.5],
+  ["Mauritius","🇲🇺",73.4,78.5],
+  ["Mexico","🇲🇽",72.1,78.0],
+  ["Micronesia","🇫🇲",68.2,71.5],
+  ["Moldova","🇲🇩",68.2,75.9],
+  ["Monaco","🇲🇨",85.7,88.0],
+  ["Mongolia","🇲🇳",68.2,76.5],
+  ["Montenegro","🇲🇪",74.9,79.7],
+  ["Morocco","🇲🇦",74.4,77.2],
+  ["Mozambique","🇲🇿",58.8,63.4],
+  ["Myanmar","🇲🇲",65.4,69.8],
+  ["Namibia","🇳🇦",62.2,67.5],
+  ["Nauru","🇳🇷",65.0,68.0],
+  ["Nepal","🇳🇵",69.1,72.7],
+  ["Netherlands","🇳🇱",80.2,83.3],
+  ["New Zealand","🇳🇿",80.5,83.7],
+  ["Nicaragua","🇳🇮",71.0,77.4],
+  ["Niger","🇳🇪",61.6,63.5],
+  ["Nigeria","🇳🇬",53.9,56.1],
+  ["North Korea","🇰🇵",67.9,75.1],
+  ["North Macedonia","🇲🇰",73.3,77.4],
+  ["Norway","🇳🇴",81.0,84.5],
+  ["Oman","🇴🇲",77.1,78.5],
+  ["Pakistan","🇵🇰",66.4,68.4],
+  ["Palau","🇵🇼",72.0,76.5],
+  ["Palestine","🇵🇸",71.9,75.4],
+  ["Panama","🇵🇦",75.2,80.5],
+  ["Papua New Guinea","🇵🇬",63.2,67.1],
+  ["Paraguay","🇵🇾",71.7,76.8],
+  ["Peru","🇵🇪",72.5,78.0],
+  ["Philippines","🇵🇭",68.7,75.2],
+  ["Poland","🇵🇱",72.9,80.8],
+  ["Portugal","🇵🇹",78.3,84.4],
+  ["Qatar","🇶🇦",78.0,79.8],
+  ["Romania","🇷🇴",71.5,79.2],
+  ["Russia","🇷🇺",64.2,75.8],
+  ["Rwanda","🇷🇼",66.6,71.0],
+  ["Saint Kitts and Nevis","🇰🇳",73.5,77.5],
+  ["Saint Lucia","🇱🇨",73.8,77.9],
+  ["Saint Vincent and the Grenadines","🇻🇨",71.6,76.2],
+  ["Samoa","🇼🇸",73.5,78.5],
+  ["San Marino","🇸🇲",82.0,86.0],
+  ["São Tomé and Príncipe","🇸🇹",68.3,71.7],
+  ["Saudi Arabia","🇸🇦",75.8,77.6],
+  ["Senegal","🇸🇳",67.6,70.2],
+  ["Serbia","🇷🇸",73.4,78.1],
+  ["Seychelles","🇸🇨",71.0,77.6],
+  ["Sierra Leone","🇸🇱",53.7,56.5],
+  ["Singapore","🇸🇬",81.3,85.7],
+  ["Slovakia","🇸🇰",73.3,80.5],
+  ["Slovenia","🇸🇮",78.3,83.9],
+  ["Solomon Islands","🇸🇧",69.2,73.0],
+  ["Somalia","🇸🇴",54.8,57.9],
+  ["South Africa","🇿🇦",61.3,67.8],
+  ["South Korea","🇰🇷",80.5,86.5],
+  ["South Sudan","🇸🇸",54.1,57.2],
+  ["Spain","🇪🇸",80.7,86.1],
+  ["Sri Lanka","🇱🇰",73.7,79.0],
+  ["Sudan","🇸🇩",64.3,67.8],
+  ["Suriname","🇸🇷",68.9,74.7],
+  ["Sweden","🇸🇪",81.3,84.9],
+  ["Switzerland","🇨🇭",81.9,85.7],
+  ["Syria","🇸🇾",69.3,76.3],
+  ["Taiwan","🇹🇼",77.7,84.7],
+  ["Tajikistan","🇹🇯",69.3,74.7],
+  ["Tanzania","🇹🇿",63.6,68.0],
+  ["Thailand","🇹🇭",72.2,78.8],
+  ["Timor-Leste","🇹🇱",67.8,71.2],
+  ["Togo","🇹🇬",59.5,62.7],
+  ["Tonga","🇹🇴",69.5,75.0],
+  ["Trinidad and Tobago","🇹🇹",71.8,76.4],
+  ["Tunisia","🇹🇳",74.9,78.5],
+  ["Turkey","🇹🇷",74.4,80.2],
+  ["Turkmenistan","🇹🇲",66.7,73.4],
+  ["Tuvalu","🇹🇻",65.0,70.0],
+  ["Uganda","🇺🇬",62.5,66.2],
+  ["Ukraine","🇺🇦",67.6,77.4],
+  ["United Arab Emirates","🇦🇪",78.8,80.4],
+  ["United Kingdom","🇬🇧",79.3,83.1],
+  ["United States","🇺🇸",74.8,80.2],
+  ["Uruguay","🇺🇾",74.2,81.1],
+  ["Uzbekistan","🇺🇿",71.0,75.5],
+  ["Vanuatu","🇻🇺",68.4,72.3],
+  ["Venezuela","🇻🇪",70.5,77.5],
+  ["Vietnam","🇻🇳",71.3,76.3],
+  ["Yemen","🇾🇪",63.5,67.8],
+  ["Zambia","🇿🇲",62.6,67.2],
+  ["Zimbabwe","🇿🇼",60.7,65.4]
+];
+
+/* ================================================================
+   CUSTOM COUNTRY DROPDOWN
+   ================================================================ */
+var selectedCountry = '';
+
+/* Convert flag emoji (e.g. 🇸🇪) → ISO2 lowercase (e.g. "se")
+   Regional indicator A = U+1F1E6, so subtract that and add 65 ('A') */
+function emojiToISO(emoji) {
+  var result = '';
+  for (var i = 0; i < emoji.length; ) {
+    var cp = emoji.codePointAt(i);
+    if (cp >= 0x1F1E6 && cp <= 0x1F1FF) {
+      result += String.fromCharCode(cp - 0x1F1E6 + 65);
+    }
+    i += cp > 0xFFFF ? 2 : 1;
+  }
+  return result.toLowerCase();
+}
+
+function makeFlagImg(emoji, cls) {
+  var iso = emojiToISO(emoji);
+  var img = document.createElement('img');
+  img.src = 'https://flagcdn.com/24x18/' + iso + '.png';
+  img.alt = iso.toUpperCase();
+  img.className = cls || 'flag-img';
+  img.onerror = function() { this.style.display = 'none'; };
+  return img;
+}
+
+function initCountryDropdown() {
+  var container = document.getElementById('dd-options');
+  for (var i = 0; i < COUNTRIES.length; i++) {
+    var c = COUNTRIES[i];
+    var div = document.createElement('div');
+    div.className = 'dd-option';
+    div.setAttribute('data-name', c[0]);
+    div.appendChild(makeFlagImg(c[1]));
+    var nameSpan = document.createElement('span');
+    nameSpan.textContent = c[0];
+    div.appendChild(nameSpan);
+    div.onclick = (function(name, flag) {
+      return function() { selectCountry(name, flag); };
+    })(c[0], c[1]);
+    container.appendChild(div);
+  }
+}
+
+function toggleCountryDropdown() {
+  var trigger  = document.getElementById('country-trigger');
+  var dropdown = document.getElementById('country-dropdown');
+  if (dropdown.classList.contains('open')) {
+    closeCountryDropdown();
+  } else {
+    trigger.classList.add('open');
+    dropdown.classList.add('open');
+    document.getElementById('dd-search').value = '';
+    filterCountries();
+    setTimeout(function() { document.getElementById('dd-search').focus(); }, 30);
+  }
+}
+
+function closeCountryDropdown() {
+  document.getElementById('country-trigger').classList.remove('open');
+  document.getElementById('country-dropdown').classList.remove('open');
+}
+
+function filterCountries() {
+  var q = document.getElementById('dd-search').value.toLowerCase();
+  var opts = document.getElementById('dd-options').querySelectorAll('.dd-option');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].style.display = opts[i].getAttribute('data-name').toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+  }
+}
+
+function selectCountry(name, flag) {
+  selectedCountry = name;
+  var display = document.getElementById('country-display');
+  display.innerHTML = '';
+  display.classList.remove('ct-placeholder');
+  var img = makeFlagImg(flag, 'ct-flag-img');
+  display.appendChild(img);
+  display.appendChild(document.createTextNode(name));
+  var opts = document.getElementById('dd-options').querySelectorAll('.dd-option');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].classList.toggle('selected', opts[i].getAttribute('data-name') === name);
+  }
+  closeCountryDropdown();
+}
+
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('country-wrap');
+  if (wrap && !wrap.contains(e.target)) closeCountryDropdown();
+});
+
+/* ================================================================
+   YEAR SELECT
+   ================================================================ */
+function initYearSelect() {
+  var sel  = document.getElementById('sel-year');
+  var nowY = new Date().getFullYear();
+  for (var y = nowY - 1; y >= 1925; y--) {
+    var opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === 1985) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+/* ================================================================
+   FORM
+   ================================================================ */
+var selectedGender = null;
+
+function selectGender(g, btn) {
+  selectedGender = g;
+  document.getElementById('btn-male').classList.remove('active');
+  document.getElementById('btn-female').classList.remove('active');
+  btn.classList.add('active');
+}
+
+function findCountry(name) {
+  for (var i = 0; i < COUNTRIES.length; i++) {
+    if (COUNTRIES[i][0] === name) return COUNTRIES[i];
+  }
+  return null;
+}
+
+function showError(msg) {
+  var el = document.getElementById('form-error');
+  el.textContent = msg;
+  setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3500);
+}
+
+/* ================================================================
+   MAIN LOGIC
+   ================================================================ */
+var START, TARGET, TOTAL;
+var CIRC = 2 * Math.PI * 38;
+var tickInterval = null;
+var lastSec = -1;
+
+function calculate() {
+  var year = parseInt(document.getElementById('sel-year').value, 10);
+  if (!selectedCountry) { showError('Please select a country.'); return; }
+  if (!selectedGender)  { showError('Please select a gender.');  return; }
+
+  var cd = findCountry(selectedCountry);
+  if (!cd) return;
+
+  var lifeExp = selectedGender === 'male' ? cd[2] : cd[3];
+
+  START  = new Date(year, 6, 1); // July 1 of birth year
+  TARGET = new Date(START.getTime() + lifeExp * 365.25 * 24 * 60 * 60 * 1000);
+  TOTAL  = TARGET - START;
+
+  var now0 = new Date();
+  var targetStr = TARGET.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  var subline2 = TARGET > now0
+    ? 'Expected end: ' + targetStr
+    : 'Average already exceeded — you\'re past the statistical age';
+  var sl1 = document.getElementById('main-subline-1');
+  sl1.textContent =
+    selectedCountry + ' · ' +
+    (selectedGender === 'male' ? 'male avg' : 'female avg') +
+    ' ' + lifeExp + ' yrs';
+  document.getElementById('main-subline-2').textContent = subline2;
+
+  try {
+    localStorage.setItem('timeleft_v1', JSON.stringify({
+      country: selectedCountry, year: year, gender: selectedGender
+    }));
+  } catch (e) {}
+
+  var splash = document.getElementById('splash');
+  splash.style.opacity = '0';
+  splash.style.transition = 'opacity 0.4s';
+  setTimeout(function() {
+    splash.classList.add('hidden');
+    document.getElementById('main-wrap').style.display = '';
+  }, 400);
+
+  if (tickInterval) clearInterval(tickInterval);
+  lastSec = -1;
+  tick();
+  tickInterval = setInterval(tick, 1000);
+}
+
+function resetToForm() {
+  if (tickInterval) { clearInterval(tickInterval); tickInterval = null; }
+  document.getElementById('main-wrap').style.display = 'none';
+  var splash = document.getElementById('splash');
+  splash.classList.remove('hidden');
+  splash.style.opacity = '1';
+  splash.style.transition = '';
+}
+
+/* ================================================================
+   TICK — countdown
+   ================================================================ */
+function pad(n) { return String(n).padStart(2, '0'); }
+
+var MOON_MS = 29.53059 * 24 * 60 * 60 * 1000; // synodic month
+
+function countSummers(now, target) {
+  var count = 0;
+  var y = now.getFullYear();
+  var nextSummer = new Date(y, 5, 21); // June 21 = summer solstice
+  if (nextSummer <= now) nextSummer = new Date(++y, 5, 21);
+  while (nextSummer < target) { count++; y++; nextSummer = new Date(y, 5, 21); }
+  return count;
+}
+
+function tick() {
+  var now  = new Date();
+  var diff = TARGET - now;
+
+  if (diff <= 0) {
+    document.getElementById('days').textContent    = '0';
+    document.getElementById('hours').textContent   = '00';
+    document.getElementById('minutes').textContent = '00';
+    document.getElementById('seconds').textContent = '00';
+    document.getElementById('pct-display').textContent = '0%';
+    document.getElementById('main-subline-2').textContent = 'Average already exceeded — you\'re past the statistical age';
+    return;
+  }
+
+  var totalSec = Math.floor(diff / 1000);
+  var sec      = totalSec % 60;
+  var totalMin = Math.floor(totalSec / 60);
+  var min      = totalMin % 60;
+  var totalHrs = Math.floor(totalMin / 60);
+  var hrs      = totalHrs % 24;
+  var days     = Math.floor(totalHrs / 24);
+
+  if (sec !== lastSec) { firePulse(); lastSec = sec; }
+
+  document.getElementById('days').textContent    = days.toLocaleString('en-US');
+  document.getElementById('hours').textContent   = pad(hrs);
+  document.getElementById('minutes').textContent = pad(min);
+  document.getElementById('seconds').textContent = pad(sec);
+
+  var tY = TARGET.getFullYear(), tM = TARGET.getMonth();
+  var nY = now.getFullYear(),    nM = now.getMonth();
+  document.getElementById('months').textContent = ((tY - nY) * 12 + (tM - nM)).toLocaleString('en-US');
+  document.getElementById('weeks').textContent  = Math.floor(days / 7).toLocaleString('en-US');
+
+  var pctGone = (now - START) / TOTAL;
+  var pctLeft = 1 - pctGone;
+  var leftLen = pctLeft * CIRC, goneLen = pctGone * CIRC;
+  document.getElementById('arc-left').setAttribute('stroke-dasharray', leftLen + ' ' + (CIRC - leftLen));
+  document.getElementById('arc-left').setAttribute('stroke-dashoffset', '0');
+  document.getElementById('arc-gone').setAttribute('stroke-dasharray', goneLen + ' ' + (CIRC - goneLen));
+  document.getElementById('arc-gone').setAttribute('stroke-dashoffset', (-leftLen) + '');
+  document.getElementById('pct-display').textContent = (pctLeft * 100).toFixed(2) + '%';
+  document.getElementById('leg-gone').textContent    = (pctGone * 100).toFixed(2) + '%';
+
+  /* Dynamic milestones — show the 3 nearest future age milestones */
+  var birthYear = START.getFullYear();
+  var currentAge = Math.floor((now - START) / (365.25 * 24 * 60 * 60 * 1000));
+  var candidateAges = [50, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+  var futureAges = [];
+  for (var j = 0; j < candidateAges.length; j++) {
+    if (candidateAges[j] > currentAge) futureAges.push(candidateAges[j]);
+  }
+  for (var i = 0; i < 3; i++) {
+    var labelEl = document.getElementById('ms-label-' + i);
+    var valEl   = document.getElementById('ms-val-' + i);
+    var unitEl  = document.getElementById('ms-unit-' + i);
+    if (i < futureAges.length) {
+      var age   = futureAges[i];
+      var mDate = new Date(birthYear + age, 6, 1);
+      var mDiff = mDate - now;
+      labelEl.textContent = 'Age ' + age;
+      if (mDiff <= 0) {
+        valEl.textContent  = 'Soon';
+        unitEl.textContent = '';
+      } else {
+        valEl.textContent  = Math.round(mDiff / (1000*60*60*24*30.4375)).toLocaleString('en-US');
+        unitEl.textContent = 'months';
+      }
+    } else {
+      labelEl.textContent = '—';
+      valEl.textContent   = '—';
+      unitEl.textContent  = '';
+    }
+  }
+
+  document.getElementById('moons').textContent   = Math.floor(diff / MOON_MS).toLocaleString('en-US');
+  document.getElementById('summers').textContent = countSummers(now, TARGET).toLocaleString('en-US');
+}
+
+/* ================================================================
+   PULSE CANVAS
+   ================================================================ */
+var pulseCanvas = document.getElementById('pulse-canvas');
+var pulseCtx    = pulseCanvas.getContext('2d');
+pulseCanvas.width = 200; pulseCanvas.height = 200;
+var pulseRings = [];
+
+function firePulse() { pulseRings.push({ r: 57, alpha: 0.7 }); }
+
+function drawPulse() {
+  pulseCtx.clearRect(0, 0, 200, 200);
+  for (var i = pulseRings.length - 1; i >= 0; i--) {
+    var ring = pulseRings[i];
+    pulseCtx.beginPath();
+    pulseCtx.arc(100, 100, ring.r, 0, Math.PI * 2);
+    pulseCtx.strokeStyle = 'rgba(201,169,110,' + ring.alpha.toFixed(3) + ')';
+    pulseCtx.lineWidth = 1.5;
+    pulseCtx.stroke();
+    ring.r += 0.8; ring.alpha -= 0.018;
+    if (ring.alpha <= 0) pulseRings.splice(i, 1);
+  }
+  requestAnimationFrame(drawPulse);
+}
+drawPulse();
+
+/* ================================================================
+   INIT
+   ================================================================ */
+initCountryDropdown();
+initYearSelect();
+
+(function restoreSaved() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('timeleft_v1'));
+    if (saved && saved.country && saved.year && saved.gender) {
+      var cd = findCountry(saved.country);
+      if (cd) selectCountry(saved.country, cd[1]);
+      var ySel = document.getElementById('sel-year');
+      ySel.value = saved.year;
+      var gBtn = document.getElementById('btn-' + saved.gender);
+      if (gBtn) selectGender(saved.gender, gBtn);
+      calculate();
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
