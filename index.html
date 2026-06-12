@@ -645,7 +645,7 @@ function tick() {
     var bYear2  = START.getFullYear();
     var now2    = new Date();
     var curAge2 = Math.floor((now2 - START) / (365.25 * 24 * 60 * 60 * 1000));
-    var cands2  = [50,60,65,70,75,80,85,90,95,100];
+    var cands2  = [50,60,65,70,75,80,85,90,95,100,105,110];
     var fut2    = cands2.filter(function(a){ return a > curAge2; });
     for (var i = 0; i < 3; i++) {
       var lEl = document.getElementById('ms-label-' + i);
@@ -695,7 +695,7 @@ function tick() {
   /* Dynamic milestones — show the 3 nearest future age milestones */
   var birthYear = START.getFullYear();
   var currentAge = Math.floor((now - START) / (365.25 * 24 * 60 * 60 * 1000));
-  var candidateAges = [50, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+  var candidateAges = [50, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110];
   var futureAges = [];
   for (var j = 0; j < candidateAges.length; j++) {
     if (candidateAges[j] > currentAge) futureAges.push(candidateAges[j]);
