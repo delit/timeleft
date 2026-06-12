@@ -168,11 +168,11 @@
 
   <div class="totals" style="opacity:0;animation:fadeUp 0.7s 0.7s forwards">
     <div class="total-card">
-      <span class="total-label">Full moons remaining</span>
+      <span class="total-label" id="moons-label">Full moons remaining</span>
       <span class="total-num" id="moons">—</span><span class="total-unit">moons</span>
     </div>
     <div class="total-card">
-      <span class="total-label">Summers remaining</span>
+      <span class="total-label" id="summers-label">Summers remaining</span>
       <span class="total-num" id="summers">—</span><span class="total-unit">summers</span>
     </div>
   </div>
@@ -628,8 +628,10 @@ function tick() {
     document.getElementById('seconds').textContent = '+' + pad(overS);
     document.getElementById('months').textContent  = '0';
     document.getElementById('weeks').textContent   = '0';
-    document.getElementById('moons').textContent   = '+' + overMoons.toLocaleString('en-US');
-    document.getElementById('summers').textContent = '+' + overSummers.toLocaleString('en-US');
+    document.getElementById('moons').textContent        = '+' + overMoons.toLocaleString('en-US');
+    document.getElementById('summers').textContent      = '+' + overSummers.toLocaleString('en-US');
+    document.getElementById('moons-label').textContent   = 'Full moons gained';
+    document.getElementById('summers-label').textContent = 'Summers gained';
 
     document.getElementById('main-subline-2').textContent = 'Statistical age exceeded — still counting';
     document.querySelector('#main-wrap .headline').textContent = 'Beyond the Average';
@@ -723,8 +725,10 @@ function tick() {
     }
   }
 
-  document.getElementById('moons').textContent   = Math.floor(diff / MOON_MS).toLocaleString('en-US');
-  document.getElementById('summers').textContent = countSummers(now, TARGET).toLocaleString('en-US');
+  document.getElementById('moons').textContent        = Math.floor(diff / MOON_MS).toLocaleString('en-US');
+  document.getElementById('summers').textContent      = countSummers(now, TARGET).toLocaleString('en-US');
+  document.getElementById('moons-label').textContent   = 'Full moons remaining';
+  document.getElementById('summers-label').textContent = 'Summers remaining';
 }
 
 /* ================================================================
