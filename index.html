@@ -610,8 +610,35 @@ function tick() {
     document.getElementById('hours').textContent   = '00';
     document.getElementById('minutes').textContent = '00';
     document.getElementById('seconds').textContent = '00';
-    document.getElementById('pct-display').textContent = '0%';
+    document.getElementById('months').textContent  = '0';
+    document.getElementById('weeks').textContent   = '0';
+    document.getElementById('moons').textContent   = '0';
+    document.getElementById('summers').textContent = '0';
     document.getElementById('main-subline-2').textContent = 'Average already exceeded — you\'re past the statistical age';
+    /* Pie: 100 % lived, 0 % left */
+    document.getElementById('arc-left').setAttribute('stroke-dasharray', '0 ' + CIRC);
+    document.getElementById('arc-gone').setAttribute('stroke-dasharray', CIRC + ' 0');
+    document.getElementById('arc-gone').setAttribute('stroke-dashoffset', '0');
+    document.getElementById('pct-display').textContent = '0%';
+    document.getElementById('leg-gone').textContent    = '100%';
+    /* Milestones: show all future ages from current age */
+    var birthYear2  = START.getFullYear();
+    var now2        = new Date();
+    var currentAge2 = Math.floor((now2 - START) / (365.25 * 24 * 60 * 60 * 1000));
+    var candidates2 = [50,60,65,70,75,80,85,90,95,100];
+    var future2 = candidates2.filter(function(a){ return a > currentAge2; });
+    for (var i = 0; i < 3; i++) {
+      var lEl = document.getElementById('ms-label-' + i);
+      var vEl = document.getElementById('ms-val-' + i);
+      var uEl = document.getElementById('ms-unit-' + i);
+      if (i < future2.length) {
+        var mDate2 = new Date(birthYear2 + future2[i], 6, 1);
+        var mDiff2 = mDate2 - now2;
+        lEl.textContent = 'Age ' + future2[i];
+        if (mDiff2 <= 0) { vEl.textContent = 'Soon'; uEl.textContent = ''; }
+        else { vEl.textContent = Math.round(mDiff2 / (1000*60*60*24*30.4375)).toLocaleString('en-US'); uEl.textContent = 'months'; }
+      } else { lEl.textContent = '—'; vEl.textContent = '—'; uEl.textContent = ''; }
+    }
     return;
   }
 
