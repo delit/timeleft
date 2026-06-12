@@ -374,7 +374,7 @@ body {
   color: #f0ece4;
   font-family: 'DM Mono', 'Courier New', monospace;
   font-size: 13px;
-  padding: 0.85rem 2.6rem 0.85rem 0.95rem;
+  padding: 0.9rem 2.6rem 0.9rem 0.95rem;
   outline: none;
   appearance: none;
   -webkit-appearance: none;
@@ -405,7 +405,7 @@ body {
   color: #f0ece4;
   font-family: 'DM Mono', 'Courier New', monospace;
   font-size: 13px;
-  padding: 0.85rem 0.95rem;
+  padding: 0.9rem 0.95rem;
   cursor: pointer;
   transition: border-color 0.2s;
   display: flex;
@@ -551,7 +551,7 @@ body {
   background: #c9a96e;
   border: none;
   border-radius: 4px;
-  padding: 1rem;
+  padding: 0.9rem;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
   margin-top: -35px;
